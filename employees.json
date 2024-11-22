@@ -1,11 +1,26 @@
 {
-    "Mitarbeiter1": {
+    "Aaron": {
         "max_weekly_hours": 40,
-        "min_weekly_hours": 20,
+        "min_weekly_hours": 32,
         "availability": {
             "Monday": ["Early", "Late"],
             "Tuesday": ["Early", "Late"],
             "Wednesday": ["Early", "Late"],
+            "Thursday": ["Early", "Late"],
+            "Friday": ["Early", "Late"],
+            "Saturday": ["Early", "Late"],
+            "Sunday": []
+        },
+        "restrictions": {},
+        "preferences": {}
+    },
+    "Olek": {
+        "max_weekly_hours": 40,
+        "min_weekly_hours": 32,
+        "availability": {
+            "Monday": ["Early", "Late"],
+            "Tuesday": ["Early"],
+            "Wednesday": ["Late"],
             "Thursday": ["Early", "Late"],
             "Friday": ["Early", "Late"],
             "Saturday": ["Early"],
@@ -14,29 +29,29 @@
         "restrictions": {},
         "preferences": {}
     },
-    "Mitarbeiter2": {
-        "max_weekly_hours": 30,
-        "min_weekly_hours": 15,
+    "Lily": {
+        "max_weekly_hours": 40,
+        "min_weekly_hours": 32,
         "availability": {
             "Monday": ["Late"],
-            "Tuesday": ["Early"],
-            "Wednesday": ["Late"],
-            "Thursday": ["Early"],
-            "Friday": ["Late"],
-            "Saturday": ["Early", "Late"],
-            "Sunday": ["Early"]
+            "Tuesday": ["Early", "Late"],
+            "Wednesday": ["Early"],
+            "Thursday": ["Early", "Late"],
+            "Friday": ["Early"],
+            "Saturday": ["Late"],
+            "Sunday": []
         },
         "restrictions": {},
         "preferences": {}
-    }
-    "Mitarbeiter3": {
-        "max_weekly_hours": 40,
-        "min_weekly_hours": 20,
+    },
+    "Dzafer": {
+        "max_weekly_hours": 35,
+        "min_weekly_hours": 28,
         "availability": {
             "Monday": ["Early", "Late"],
-            "Tuesday": ["Early", "Late"],
+            "Tuesday": ["Early"],
             "Wednesday": ["Early", "Late"],
-            "Thursday": ["Early", "Late"],
+            "Thursday": ["Late"],
             "Friday": ["Early", "Late"],
             "Saturday": ["Early"],
             "Sunday": []
@@ -44,77 +59,77 @@
         "restrictions": {},
         "preferences": {}
     },
-    "Mitarbeiter4": {
-        "max_weekly_hours": 30,
-        "min_weekly_hours": 15,
+    "Aylin": {
+        "max_weekly_hours": 35,
+        "min_weekly_hours": 28,
         "availability": {
-            "Monday": ["Late"],
-            "Tuesday": ["Early"],
-            "Wednesday": ["Late"],
+            "Monday": ["Early"],
+            "Tuesday": ["Late"],
+            "Wednesday": ["Early", "Late"],
             "Thursday": ["Early"],
             "Friday": ["Late"],
             "Saturday": ["Early", "Late"],
-            "Sunday": ["Early"]
-        },
-        "restrictions": {},
-        "preferences": {}
-    }
-    "Mitarbeiter5": {
-        "max_weekly_hours": 40,
-        "min_weekly_hours": 20,
-        "availability": {
-            "Monday": ["Early", "Late"],
-            "Tuesday": ["Early", "Late"],
-            "Wednesday": ["Early", "Late"],
-            "Thursday": ["Early", "Late"],
-            "Friday": ["Early", "Late"],
-            "Saturday": ["Early"],
             "Sunday": []
         },
         "restrictions": {},
         "preferences": {}
     },
-    "Mitarbeiter6": {
+    "Titus": {
         "max_weekly_hours": 30,
-        "min_weekly_hours": 15,
-        "availability": {
-            "Monday": ["Late"],
-            "Tuesday": ["Early"],
-            "Wednesday": ["Late"],
-            "Thursday": ["Early"],
-            "Friday": ["Late"],
-            "Saturday": ["Early", "Late"],
-            "Sunday": ["Early"]
-        },
-        "restrictions": {},
-        "preferences": {}
-    }
-    "Mitarbeiter7": {
-        "max_weekly_hours": 40,
-        "min_weekly_hours": 20,
+        "min_weekly_hours": 24,
         "availability": {
             "Monday": ["Early", "Late"],
             "Tuesday": ["Early", "Late"],
-            "Wednesday": ["Early", "Late"],
+            "Wednesday": ["Late"],
             "Thursday": ["Early", "Late"],
-            "Friday": ["Early", "Late"],
-            "Saturday": ["Early"],
+            "Friday": ["Early"],
+            "Saturday": ["Late"],
             "Sunday": []
         },
         "restrictions": {},
         "preferences": {}
     },
-    "Mitarbeiter8": {
-        "max_weekly_hours": 30,
-        "min_weekly_hours": 15,
+    "Thalia": {
+        "max_weekly_hours": 20,
+        "min_weekly_hours": 16,
         "availability": {
-            "Monday": ["Late"],
-            "Tuesday": ["Early"],
+            "Monday": ["Early"],
+            "Tuesday": ["Late"],
+            "Wednesday": ["Early"],
+            "Thursday": ["Late"],
+            "Friday": ["Early"],
+            "Saturday": ["Late"],
+            "Sunday": []
+        },
+        "restrictions": {},
+        "preferences": {}
+    },
+    "Alexander": {
+        "max_weekly_hours": 8,
+        "min_weekly_hours": 6,
+        "availability": {
+            "Monday": [],
+            "Tuesday": [],
             "Wednesday": ["Late"],
-            "Thursday": ["Early"],
-            "Friday": ["Late"],
+            "Thursday": ["Late"],
+            "Friday": [],
             "Saturday": ["Early", "Late"],
             "Sunday": ["Early"]
+        },
+        "restrictions": {},
+        "preferences": {}
+    },
+    "Kevin": {
+        "max_weekly_hours": 6,
+        "min_weekly_hours": 4,
+        "availability": {
+            "Monday": ["Early"],
+            "Tuesday": [],
+            "Wednesday": ["Early"],
+            "Thursday": [],
+            "Friday": ["Early"],
+            "Saturday": [],
+            "Sunday": []
         },
         "restrictions": {},
         "preferences": {}
