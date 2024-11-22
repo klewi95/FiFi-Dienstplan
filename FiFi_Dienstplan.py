@@ -460,7 +460,6 @@ def main():
     choice = st.sidebar.radio("Navigation", menu)
 
     if choice == "Startseite":
-        st.image("fitness.jpg", use_column_width=True)
         st.subheader("Willkommen zum Dienstplan-Manager")
         st.write("Diese Anwendung hilft Ihnen bei der Erstellung und Verwaltung von Dienstplänen für Ihr Fitnessstudio.")
 
