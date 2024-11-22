@@ -1,0 +1,122 @@
+{
+    "Mitarbeiter1": {
+        "max_weekly_hours": 40,
+        "min_weekly_hours": 20,
+        "availability": {
+            "Monday": ["Early", "Late"],
+            "Tuesday": ["Early", "Late"],
+            "Wednesday": ["Early", "Late"],
+            "Thursday": ["Early", "Late"],
+            "Friday": ["Early", "Late"],
+            "Saturday": ["Early"],
+            "Sunday": []
+        },
+        "restrictions": {},
+        "preferences": {}
+    },
+    "Mitarbeiter2": {
+        "max_weekly_hours": 30,
+        "min_weekly_hours": 15,
+        "availability": {
+            "Monday": ["Late"],
+            "Tuesday": ["Early"],
+            "Wednesday": ["Late"],
+            "Thursday": ["Early"],
+            "Friday": ["Late"],
+            "Saturday": ["Early", "Late"],
+            "Sunday": ["Early"]
+        },
+        "restrictions": {},
+        "preferences": {}
+    }
+    "Mitarbeiter3": {
+        "max_weekly_hours": 40,
+        "min_weekly_hours": 20,
+        "availability": {
+            "Monday": ["Early", "Late"],
+            "Tuesday": ["Early", "Late"],
+            "Wednesday": ["Early", "Late"],
+            "Thursday": ["Early", "Late"],
+            "Friday": ["Early", "Late"],
+            "Saturday": ["Early"],
+            "Sunday": []
+        },
+        "restrictions": {},
+        "preferences": {}
+    },
+    "Mitarbeiter4": {
+        "max_weekly_hours": 30,
+        "min_weekly_hours": 15,
+        "availability": {
+            "Monday": ["Late"],
+            "Tuesday": ["Early"],
+            "Wednesday": ["Late"],
+            "Thursday": ["Early"],
+            "Friday": ["Late"],
+            "Saturday": ["Early", "Late"],
+            "Sunday": ["Early"]
+        },
+        "restrictions": {},
+        "preferences": {}
+    }
+    "Mitarbeiter5": {
+        "max_weekly_hours": 40,
+        "min_weekly_hours": 20,
+        "availability": {
+            "Monday": ["Early", "Late"],
+            "Tuesday": ["Early", "Late"],
+            "Wednesday": ["Early", "Late"],
+            "Thursday": ["Early", "Late"],
+            "Friday": ["Early", "Late"],
+            "Saturday": ["Early"],
+            "Sunday": []
+        },
+        "restrictions": {},
+        "preferences": {}
+    },
+    "Mitarbeiter6": {
+        "max_weekly_hours": 30,
+        "min_weekly_hours": 15,
+        "availability": {
+            "Monday": ["Late"],
+            "Tuesday": ["Early"],
+            "Wednesday": ["Late"],
+            "Thursday": ["Early"],
+            "Friday": ["Late"],
+            "Saturday": ["Early", "Late"],
+            "Sunday": ["Early"]
+        },
+        "restrictions": {},
+        "preferences": {}
+    }
+    "Mitarbeiter7": {
+        "max_weekly_hours": 40,
+        "min_weekly_hours": 20,
+        "availability": {
+            "Monday": ["Early", "Late"],
+            "Tuesday": ["Early", "Late"],
+            "Wednesday": ["Early", "Late"],
+            "Thursday": ["Early", "Late"],
+            "Friday": ["Early", "Late"],
+            "Saturday": ["Early"],
+            "Sunday": []
+        },
+        "restrictions": {},
+        "preferences": {}
+    },
+    "Mitarbeiter8": {
+        "max_weekly_hours": 30,
+        "min_weekly_hours": 15,
+        "availability": {
+            "Monday": ["Late"],
+            "Tuesday": ["Early"],
+            "Wednesday": ["Late"],
+            "Thursday": ["Early"],
+            "Friday": ["Late"],
+            "Saturday": ["Early", "Late"],
+            "Sunday": ["Early"]
+        },
+        "restrictions": {},
+        "preferences": {}
+    }
+}
