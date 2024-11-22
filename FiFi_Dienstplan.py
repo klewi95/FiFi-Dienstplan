@@ -28,17 +28,20 @@ def save_employees(employees):
         json.dump(employees, f, ensure_ascii=False, indent=4)
 
 # Laden der Mitarbeiterdaten beim Start der Anwendung
-employees = load_employees()
+if 'employees' not in st.session_state:
+    st.session_state['employees'] = load_employees()
+
+employees = st.session_state['employees']
 
 # Definition der Schichten und deren Dauer sowie Startzeiten
 shifts_weekday = {
-    'Early': {'duration': 8, 'start': 6.75},    # 6:45 Uhr
-    'Late': {'duration': 8, 'start': 14.75}     # 14:45 Uhr
+    'Frühschicht': {'duration': 8, 'start': 6.75},    # 6:45 Uhr
+    'Spätschicht': {'duration': 8, 'start': 14.75}    # 14:45 Uhr
 }
 
 shifts_weekend = {
-    'Early': {'duration': 5, 'start': 9.25},    # 9:15 Uhr
-    'Late': {'duration': 6, 'start': 14.25}     # 14:15 Uhr
+    'Frühschicht': {'duration': 5, 'start': 9.25},    # 9:15 Uhr
+    'Spätschicht': {'duration': 6, 'start': 14.25}    # 14:15 Uhr
 }
 
 # Betriebsratvorschriften und Arbeitszeitgesetz
@@ -50,13 +53,19 @@ min_rest_time = 11        # Mindestruhezeit zwischen Schichten in Stunden
 allowed_shift_deviation = 2  # Erlaubte Abweichung von der durchschnittlichen Schichtanzahl
 penalty_per_day = 100        # Strafwert für jeden Tag über dem Soft-Limit
 
-# Zeitraum für den Dienstplan
-start_date = datetime(2024, 10, 1)
-end_date = datetime(2024, 10, 31)
+# Zeitraum für den Dienstplan (standardmäßig aktueller Monat)
+if 'start_date' not in st.session_state:
+    st.session_state['start_date'] = datetime.now().replace(day=1)
+if 'end_date' not in st.session_state:
+    st.session_state['end_date'] = (datetime.now().replace(day=1) + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+
+start_date = st.session_state['start_date']
+end_date = st.session_state['end_date']
 dates = pd.date_range(start_date, end_date)
 
-# Feiertage in NRW 2024 automatisch berechnen
-deutschland_feiertage = holidays.Germany(years=2024, prov='NW')  # 'NW' für Nordrhein-Westfalen
+# Feiertage automatisch berechnen
+year = start_date.year
+deutschland_feiertage = holidays.Germany(years=year, prov='NW')  # 'NW' für Nordrhein-Westfalen
 feiertage = set([date for date in dates if date in deutschland_feiertage])
 
 # Hilfsfunktionen zur Bestimmung von Wochentagen und Schichtinformationen
@@ -104,6 +113,7 @@ def get_preference_score(employee, date, shift):
 
 # Funktion zur Generierung des Dienstplans
 def generate_schedule():
+    global employees
     if not employees:
         return None, "Keine Mitarbeiterdaten vorhanden."
 
@@ -136,7 +146,7 @@ def generate_schedule():
         assignments.get((e, d.strftime('%Y-%m-%d'), s), 0) * get_preference_score(e, d, s)
         for e in employees
         for d in dates
-        for s in ['Early', 'Late']
+        for s in shifts_weekday.keys()
         if (e, d.strftime('%Y-%m-%d'), s) in assignments
     ])
 
@@ -149,7 +159,7 @@ def generate_schedule():
             consecutive_days_vars[(e, idx)] = var
             # Berechnung der aufeinanderfolgenden Arbeitstage
             total_consecutive = pulp.lpSum([
-                pulp.lpSum([assignments.get((e, dates[idx + j].strftime('%Y-%m-%d'), shift), 0) for shift in ['Early', 'Late']])
+                pulp.lpSum([assignments.get((e, dates[idx + j].strftime('%Y-%m-%d'), shift), 0) for shift in shifts_weekday.keys()])
                 for j in range(max_consecutive_days + 1)
             ])
             prob += var >= total_consecutive - max_consecutive_days, f"SoftMaxConsecutiveDays_{e}_{idx}"
@@ -184,9 +194,9 @@ def generate_schedule():
     for e in employees:
         for week_num, week_dates in weeks.items():
             total_weekly_hours = pulp.lpSum([
-                (assignments.get((e, d, 'Early'), 0) * get_actual_working_time('Early', pd.to_datetime(d))) +
-                (assignments.get((e, d, 'Late'), 0) * get_actual_working_time('Late', pd.to_datetime(d)))
+                (assignments.get((e, d, shift), 0) * get_actual_working_time(shift, pd.to_datetime(d)))
                 for d in week_dates
+                for shift in shifts_weekday.keys()
             ])
             # Maximale wöchentliche Arbeitszeit
             prob += total_weekly_hours <= employees[e]['max_weekly_hours'], f"MaxWeeklyHours_{e}_Week_{week_num}"
@@ -198,8 +208,8 @@ def generate_schedule():
         for date in dates:
             date_str = date.strftime('%Y-%m-%d')
             daily_hours = pulp.lpSum([
-                (assignments.get((e, date_str, 'Early'), 0) * get_actual_working_time('Early', date)) +
-                (assignments.get((e, date_str, 'Late'), 0) * get_actual_working_time('Late', date))
+                (assignments.get((e, date_str, shift), 0) * get_actual_working_time(shift, date))
+                for shift in shifts_weekday.keys()
             ])
             prob += daily_hours <= max_daily_hours, f"MaxDailyHours_{e}_{date_str}"
 
@@ -208,8 +218,8 @@ def generate_schedule():
         for date in dates:
             date_str = date.strftime('%Y-%m-%d')
             prob += pulp.lpSum([
-                assignments.get((e, date_str, 'Early'), 0),
-                assignments.get((e, date_str, 'Late'), 0)
+                assignments.get((e, date_str, shift), 0)
+                for shift in shifts_weekday.keys()
             ]) <= 1, f"MaxOneShiftPerDay_{e}_{date_str}"
 
     # 5. Berücksichtigung der Verfügbarkeiten und Einschränkungen
@@ -220,7 +230,7 @@ def generate_schedule():
             available_shifts = employees[e]['availability'].get(day_name, [])
             # Einschränkungen für bestimmte Tage
             restricted_shifts = employees[e].get('restrictions', {}).get(date_str, [])
-            for shift in ['Early', 'Late']:
+            for shift in shifts_weekday.keys():
                 if shift not in available_shifts or shift in restricted_shifts:
                     if (e, date_str, shift) in assignments:
                         prob += assignments[(e, date_str, shift)] == 0, f"Restriction_{e}_{date_str}_{shift}"
@@ -229,7 +239,7 @@ def generate_schedule():
     for e in employees:
         for idx in range(len(dates) - max_consecutive_days):
             total_consecutive = pulp.lpSum([
-                pulp.lpSum([assignments.get((e, dates[idx + j].strftime('%Y-%m-%d'), shift), 0) for shift in ['Early', 'Late']])
+                pulp.lpSum([assignments.get((e, dates[idx + j].strftime('%Y-%m-%d'), shift), 0) for shift in shifts_weekday.keys()])
                 for j in range(max_consecutive_days + 1)
             ])
             prob += total_consecutive <= max_consecutive_days, f"MaxConsecutiveDays_{e}_{idx}"
@@ -241,8 +251,8 @@ def generate_schedule():
             next_date = dates[idx + 1]
             current_date_str = current_date.strftime('%Y-%m-%d')
             next_date_str = next_date.strftime('%Y-%m-%d')
-            for current_shift in ['Early', 'Late']:
-                for next_shift in ['Early', 'Late']:
+            for current_shift in shifts_weekday.keys():
+                for next_shift in shifts_weekday.keys():
                     if (e, current_date_str, current_shift) in assignments and (e, next_date_str, next_shift) in assignments:
                         # Endzeit der aktuellen Schicht
                         end_time_current = get_shift_start(current_shift, current_date) + get_shift_duration(current_shift, current_date)
@@ -258,7 +268,7 @@ def generate_schedule():
         total_shifts_assigned = pulp.lpSum([
             assignments.get((e, d.strftime('%Y-%m-%d'), shift), 0)
             for d in dates
-            for shift in ['Early', 'Late']
+            for shift in shifts_weekday.keys()
         ])
         # Fairnessbedingungen
         prob += total_shifts_assigned >= average_shifts_per_employee[e] - allowed_shift_deviation, f"FairnessMin_{e}"
@@ -269,7 +279,7 @@ def generate_schedule():
         return pulp.lpSum([
             assignments.get((employee, d.strftime('%Y-%m-%d'), s), 0)
             for d in dates
-            for s in ['Early', 'Late']
+            for s in shifts_weekday.keys()
             if is_weekend_or_holiday(d)
         ])
 
@@ -292,9 +302,9 @@ def generate_schedule():
                 start_idx = idx - 27
                 period_dates = dates[start_idx:idx+1]
                 total_hours = pulp.lpSum([
-                    (assignments.get((e, d.strftime('%Y-%m-%d'), 'Early'), 0) * get_actual_working_time('Early', d)) +
-                    (assignments.get((e, d.strftime('%Y-%m-%d'), 'Late'), 0) * get_actual_working_time('Late', d))
+                    (assignments.get((e, d.strftime('%Y-%m-%d'), shift), 0) * get_actual_working_time(shift, d))
                     for d in period_dates
+                    for shift in shifts_weekday.keys()
                 ])
                 prob += total_hours <= 48 * 4, f"RollingAvg48h_{e}_{dates[idx].strftime('%Y-%m-%d')}"
 
@@ -312,7 +322,7 @@ def generate_schedule():
         for date in dates:
             date_str = date.strftime('%Y-%m-%d')
             day_name = date.strftime('%A')
-            for shift in ['Early', 'Late']:
+            for shift in shifts_weekday.keys():
                 if (e, date_str, shift) in assignments and pulp.value(assignments[(e, date_str, shift)]) == 1:
                     start_time = get_shift_start(shift, date)
                     end_time = start_time + get_shift_duration(shift, date)
@@ -354,46 +364,124 @@ def display_schedule(dienstplan):
         for name, shifts in dienstplan.items():
             st.subheader(f"Mitarbeiter: {name}")
             df = pd.DataFrame(shifts)
-            st.dataframe(df)
+            # Farbige Hervorhebung der Schichten
+            def highlight_shifts(row):
+                if row['Schicht'] == 'Frühschicht':
+                    return ['background-color: #D5F5E3'] * len(row)
+                else:
+                    return ['background-color: #AED6F1'] * len(row)
+            st.dataframe(df.style.apply(highlight_shifts, axis=1))
     else:
         st.info("Kein Dienstplan gefunden.")
+
+# Funktion zur Mitarbeiterverwaltung
+def manage_employees():
+    st.header("Mitarbeiterverwaltung")
+    employees = st.session_state['employees']
+
+    # Tabs für Übersicht und Hinzufügen
+    tabs = st.tabs(["Übersicht", "Mitarbeiter hinzufügen"])
+    with tabs[0]:
+        if employees:
+            selected_employee = st.selectbox("Mitarbeiter auswählen", list(employees.keys()))
+            if selected_employee:
+                details = employees[selected_employee]
+                st.write(f"**Maximale Wochenstunden:** {details['max_weekly_hours']}")
+                st.write(f"**Minimale Wochenstunden:** {details['min_weekly_hours']}")
+                st.write("**Verfügbarkeiten:**")
+                st.json(details.get('availability', {}))
+                st.write("**Einschränkungen:**")
+                st.json(details.get('restrictions', {}))
+                st.write("**Präferenzen:**")
+                st.json(details.get('preferences', {}))
+
+                # Optionen zum Bearbeiten oder Löschen
+                edit = st.button("Bearbeiten")
+                delete = st.button("Löschen")
+                if edit:
+                    st.session_state['edit_employee'] = selected_employee
+                    st.session_state['tab_index'] = 1  # Wechsel zum Tab "Mitarbeiter hinzufügen"
+                    st.experimental_rerun()
+                if delete:
+                    del employees[selected_employee]
+                    save_employees(employees)
+                    st.success("Mitarbeiter gelöscht.")
+                    st.experimental_rerun()
+        else:
+            st.info("Keine Mitarbeiter vorhanden.")
+
+    with tabs[1]:
+        # Bearbeitungsmodus
+        if 'edit_employee' in st.session_state:
+            st.subheader(f"Mitarbeiter bearbeiten: {st.session_state['edit_employee']}")
+            employee_name = st.session_state['edit_employee']
+            details = employees[employee_name]
+        else:
+            st.subheader("Neuen Mitarbeiter hinzufügen")
+            employee_name = st.text_input("Name des Mitarbeiters")
+
+        max_hours = st.number_input("Maximale Wochenstunden", min_value=1, max_value=168, value=40)
+        min_hours = st.number_input("Minimale Wochenstunden", min_value=0, max_value=168, value=32)
+
+        st.write("**Verfügbarkeiten einstellen**")
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        availability = {}
+        for day in days:
+            shifts = st.multiselect(f"{day}", options=shifts_weekday.keys())
+            availability[day] = shifts
+
+        # Speichern
+        if st.button("Speichern"):
+            if employee_name:
+                employees[employee_name] = {
+                    "max_weekly_hours": max_hours,
+                    "min_weekly_hours": min_hours,
+                    "availability": availability,
+                    "restrictions": {},
+                    "preferences": {}
+                }
+                save_employees(employees)
+                st.success("Mitarbeiterdaten gespeichert.")
+                if 'edit_employee' in st.session_state:
+                    del st.session_state['edit_employee']
+                st.experimental_rerun()
+            else:
+                st.error("Bitte geben Sie einen Namen ein.")
+
+        if 'edit_employee' in st.session_state and st.button("Abbrechen"):
+            del st.session_state['edit_employee']
+            st.experimental_rerun()
 
 # Hauptfunktion der Streamlit-App
 def main():
     st.title("Dienstplan-Manager für Fitnessstudio")
 
     menu = ["Startseite", "Mitarbeiter verwalten", "Dienstplan erstellen", "Dienstplan anzeigen"]
-    choice = st.sidebar.selectbox("Menü", menu)
+    choice = st.sidebar.radio("Navigation", menu)
 
     if choice == "Startseite":
+        st.image("fitness.jpg", use_column_width=True)
         st.subheader("Willkommen zum Dienstplan-Manager")
-        st.write("Bitte wählen Sie eine Option aus dem Menü.")
+        st.write("Diese Anwendung hilft Ihnen bei der Erstellung und Verwaltung von Dienstplänen für Ihr Fitnessstudio.")
 
     elif choice == "Mitarbeiter verwalten":
-        st.header("Mitarbeiterverwaltung")
-
-        if st.button("Mitarbeiterdaten aktualisieren"):
-            global employees
-            employees = load_employees()
-            st.success("Mitarbeiterdaten wurden aktualisiert.")
-
-        # Anzeige der Mitarbeiterliste
-        if employees:
-            for e, details in employees.items():
-                st.subheader(e)
-                st.write(f"Max Wochenstunden: {details['max_weekly_hours']}")
-                st.write(f"Min Wochenstunden: {details['min_weekly_hours']}")
-                st.write("Verfügbarkeiten:")
-                st.json(details.get('availability', {}))
-                st.write("Einschränkungen:")
-                st.json(details.get('restrictions', {}))
-                st.write("Präferenzen:")
-                st.json(details.get('preferences', {}))
-        else:
-            st.info("Keine Mitarbeiterdaten vorhanden.")
+        manage_employees()
 
     elif choice == "Dienstplan erstellen":
         st.header("Dienstplan erstellen")
+
+        # Auswahl des Planungszeitraums
+        st.subheader("Planungszeitraum auswählen")
+        start_date = st.date_input("Startdatum", value=st.session_state['start_date'])
+        end_date = st.date_input("Enddatum", value=st.session_state['end_date'])
+
+        if start_date > end_date:
+            st.error("Das Startdatum darf nicht nach dem Enddatum liegen.")
+        else:
+            st.session_state['start_date'] = start_date
+            st.session_state['end_date'] = end_date
+            st.session_state['dates'] = pd.date_range(start_date, end_date)
+
         if st.button("Dienstplan generieren"):
             with st.spinner('Dienstplan wird generiert...'):
                 dienstplan, status = generate_schedule()
