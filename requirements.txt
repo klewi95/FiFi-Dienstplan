@@ -3,4 +3,3 @@ pandas==2.1.1
 pulp==2.7.0
 holidays==0.24
 matplotlib>=3.8.0
-pillow>=10.0.0
